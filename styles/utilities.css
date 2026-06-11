@@ -1,0 +1,55 @@
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+.is-invisible {
+  visibility: hidden !important;
+}
+
+.no-pointer {
+  pointer-events: none !important;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.glass-panel {
+  border: 1px solid var(--color-border);
+  background: var(--surface-glass-4);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(16px);
+}
+
+.soft-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
+}
+
+.dragging {
+  opacity: 0.86;
+  cursor: grabbing !important;
+}
+
+.text-muted {
+  color: var(--color-muted);
+}
+
+.text-soft {
+  color: var(--color-text-soft);
+}

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Muralis — Organizador Visual de Ideias</title>
+
+    <meta
+      name="description"
+      content="Um organizador visual local para ideias, tarefas, referências, metas, links e imagens."
+    />
+
+    <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
+
+    <script>
+      (() => {
+        try {
+          const preference = localStorage.getItem("muralis_theme") || "system";
+          const isDark =
+            preference === "dark" ||
+            (
+              preference === "system" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches
+            );
+
+          document.documentElement.dataset.theme = isDark ? "dark" : "light";
+          document.documentElement.dataset.themePreference = preference;
+        } catch (error) {
+          document.documentElement.dataset.theme = "light";
+          document.documentElement.dataset.themePreference = "system";
+        }
+      })();
+    </script>
+
+    <link rel="stylesheet" href="./styles/reset.css" />
+    <link rel="stylesheet" href="./styles/tokens.css" />
+    <link rel="stylesheet" href="./styles/base.css" />
+    <link rel="stylesheet" href="./styles/layout.css" />
+    <link rel="stylesheet" href="./styles/components.css" />
+    <link rel="stylesheet" href="./styles/board.css" />
+    <link rel="stylesheet" href="./styles/modes.css" />
+    <link rel="stylesheet" href="./styles/utilities.css" />
+  </head>
+
+  <body>
+    <noscript>
+      <div class="noscript-message">
+        Este app precisa de JavaScript ativado para funcionar.
+      </div>
+    </noscript>
+
+    <div id="app" class="app-shell">
+      <header class="topbar" aria-label="Barra superior">
+        <div class="topbar__brand">
+          <button
+            class="icon-button topbar__menu-button"
+            type="button"
+            aria-label="Abrir menu lateral"
+            aria-expanded="false"
+            data-action="toggle-sidebar"
+          >
+            <span aria-hidden="true">☰</span>
+          </button>
+
+          <div class="brand">
+            <div class="brand__logo" aria-hidden="true">M</div>
+
+            <div class="brand__text">
+              <strong class="brand__name">Muralis</strong>
+              <span class="brand__subtitle">Organizador visual</span>
+            </div>
+          </div>
+        </div>
+
+        <nav class="mode-switcher" aria-label="Modos de visualizacao" role="tablist">
+          <button
+            class="mode-switcher__button is-active"
+            type="button"
+            data-mode="free"
+            role="tab"
+            aria-selected="true"
+            aria-controls="boardCanvas"
+            aria-label="Modo Mural livre"
+          >
+            <span class="mode-switcher__label">Mural</span>
+          </button>
+
+          <button
+            class="mode-switcher__button"
+            type="button"
+            data-mode="kanban"
+            role="tab"
+            aria-selected="false"
+            aria-controls="boardCanvas"
+            aria-label="Modo Kanban"
+          >
+            <span class="mode-switcher__label">Kanban</span>
+          </button>
+
+          <button
+            class="mode-switcher__button"
+            type="button"
+            data-mode="matrix"
+            role="tab"
+            aria-selected="false"
+            aria-controls="boardCanvas"
+            aria-label="Modo Matriz esforco impacto"
+          >
+            <span class="mode-switcher__label">Matriz</span>
+          </button>
+
+          <button
+            class="mode-switcher__button"
+            type="button"
+            data-mode="mindmap"
+            role="tab"
+            aria-selected="false"
+            aria-controls="boardCanvas"
+            aria-label="Modo Mapa mental"
+          >
+            <span class="mode-switcher__label">Mapa</span>
+          </button>
+
+          <button
+            class="mode-switcher__button"
+            type="button"
+            data-mode="timeline"
+            role="tab"
+            aria-selected="false"
+            aria-controls="boardCanvas"
+            aria-label="Modo Timeline"
+          >
+            <span class="mode-switcher__label">Timeline</span>
+          </button>
+        </nav>
+
+        <div class="topbar__actions">
+          <button
+            class="ghost-button"
+            type="button"
+            data-action="open-command-palette"
+            title="Abrir comandos rápidos"
+          >
+            <span>Comandos</span>
+            <kbd>Ctrl K</kbd>
+          </button>
+
+          <button class="ghost-button" type="button" data-action="import-json">
+            Importar
+          </button>
+
+          <button class="ghost-button" type="button" data-action="export-json">
+            Exportar
+          </button>
+
+          <button class="primary-button" type="button" data-action="create-block">
+            + Novo bloco
+          </button>
+        </div>
+      </header>
+
+      <aside class="sidebar" aria-label="Painel lateral">
+        <section class="sidebar__section">
+          <div class="sidebar__header">
+            <p class="eyebrow">Criar</p>
+            <h2>Adicionar ao mural</h2>
+          </div>
+
+          <div class="create-grid">
+            <button class="create-card" type="button" data-create-type="idea">
+              <span class="create-card__icon" aria-hidden="true">💡</span>
+              <span class="create-card__title">Ideia</span>
+              <span class="create-card__hint">Algo para explorar</span>
+            </button>
+
+            <button class="create-card" type="button" data-create-type="task">
+              <span class="create-card__icon" aria-hidden="true">✓</span>
+              <span class="create-card__title">Tarefa</span>
+              <span class="create-card__hint">Algo para fazer</span>
+            </button>
+
+            <button
+              class="create-card"
+              type="button"
+              data-create-type="reference"
+            >
+              <span class="create-card__icon" aria-hidden="true">📌</span>
+              <span class="create-card__title">Referência</span>
+              <span class="create-card__hint">Fonte ou anotação</span>
+            </button>
+
+            <button class="create-card" type="button" data-create-type="goal">
+              <span class="create-card__icon" aria-hidden="true">🎯</span>
+              <span class="create-card__title">Meta</span>
+              <span class="create-card__hint">Objetivo claro</span>
+            </button>
+
+            <button class="create-card" type="button" data-create-type="quote">
+              <span class="create-card__icon" aria-hidden="true">“ ”</span>
+              <span class="create-card__title">Frase</span>
+              <span class="create-card__hint">Pensamento solto</span>
+            </button>
+
+            <button class="create-card" type="button" data-create-type="link">
+              <span class="create-card__icon" aria-hidden="true">🔗</span>
+              <span class="create-card__title">Link</span>
+              <span class="create-card__hint">URL importante</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="sidebar__section">
+          <div class="sidebar__header">
+            <p class="eyebrow">Encontrar</p>
+            <h2>Busca rápida</h2>
+          </div>
+
+          <label class="field">
+            <span class="field__label">Pesquisar blocos</span>
+            <input
+              class="input"
+              type="search"
+              placeholder="Digite uma ideia, tag ou tarefa..."
+              data-filter="search"
+            />
+          </label>
+        </section>
+
+        <section class="sidebar__section">
+          <div class="sidebar__header">
+            <p class="eyebrow">Filtros</p>
+            <h2>Tipos de bloco</h2>
+          </div>
+
+          <div class="filter-list" aria-label="Filtros por tipo">
+            <label class="check-row">
+              <input type="checkbox" checked data-filter-type="idea" />
+              <span>Ideias</span>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" checked data-filter-type="task" />
+              <span>Tarefas</span>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" checked data-filter-type="reference" />
+              <span>Referências</span>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" checked data-filter-type="goal" />
+              <span>Metas</span>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" checked data-filter-type="quote" />
+              <span>Frases</span>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" checked data-filter-type="link" />
+              <span>Links</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="sidebar__section sidebar__section--tip">
+          <p class="eyebrow">Dica</p>
+          <p class="sidebar-tip">
+            Comece criando uma ideia. Depois arraste, conecte e reorganize do seu jeito.
+          </p>
+        </section>
+      </aside>
+
+      <main class="workspace" aria-label="Área de trabalho">
+        <section class="workspace__header">
+          <div>
+            <p class="eyebrow">Mural atual</p>
+            <h1 class="workspace__title" data-board-title>Meu primeiro mural</h1>
+          </div>
+
+          <div class="workspace__meta">
+            <span data-block-count>0 blocos</span>
+            <span aria-hidden="true">•</span>
+            <span data-save-status>Não salvo</span>
+          </div>
+        </section>
+
+        <section class="board-viewport" aria-label="Canvas do mural">
+          <div class="board-background" aria-hidden="true"></div>
+
+          <svg
+            id="connectionLayer"
+            class="connection-layer"
+            aria-hidden="true"
+          ></svg>
+
+          <div
+            id="boardCanvas"
+            class="board-canvas"
+            tabindex="0"
+            role="tabpanel"
+            data-mode="free"
+            aria-label="Área onde os blocos serão organizados"
+          >
+            <div class="empty-state" data-empty-state>
+              <div class="empty-state__icon" aria-hidden="true">✦</div>
+
+              <h2>Seu mural está vazio</h2>
+
+              <p>
+                Crie uma ideia, tarefa, link ou referência para começar a organizar seus pensamentos.
+              </p>
+
+              <button
+                class="primary-button"
+                type="button"
+                data-action="create-block"
+              >
+                Criar primeiro bloco
+              </button>
+            </div>
+          </div>
+
+          <div class="viewport-controls" aria-label="Controles de visualização">
+            <button
+              class="icon-button"
+              type="button"
+              data-action="zoom-out"
+              aria-label="Diminuir zoom"
+            >
+              −
+            </button>
+
+            <button
+              class="viewport-controls__value"
+              type="button"
+              data-action="reset-zoom"
+              aria-label="Resetar zoom"
+            >
+              <span data-zoom-value>100%</span>
+            </button>
+
+            <button
+              class="icon-button"
+              type="button"
+              data-action="zoom-in"
+              aria-label="Aumentar zoom"
+            >
+              +
+            </button>
+
+            <button
+              class="icon-button"
+              type="button"
+              data-action="center-view"
+              aria-label="Centralizar mural"
+            >
+              ⌖
+            </button>
+          </div>
+        </section>
+      </main>
+
+      <aside
+        class="inspector"
+        aria-label="Propriedades do bloco selecionado"
+        data-inspector
+        hidden
+      >
+        <div class="inspector__header">
+          <div>
+            <p class="eyebrow">Propriedades</p>
+            <h2>Bloco selecionado</h2>
+          </div>
+
+          <button
+            class="icon-button"
+            type="button"
+            aria-label="Fechar painel de propriedades"
+            data-action="close-inspector"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="inspector__body">
+          <p class="muted-text">
+            Selecione um bloco no mural para editar suas propriedades.
+          </p>
+        </div>
+      </aside>
+
+      <div id="modalRoot" class="modal-root" aria-live="polite"></div>
+      <div id="toastRoot" class="toast-root" aria-live="polite"></div>
+      <div id="contextMenuRoot" class="context-menu-root"></div>
+      <div id="commandPaletteRoot" class="command-palette-root"></div>
+    </div>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
